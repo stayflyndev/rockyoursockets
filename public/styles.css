@@ -4,3 +4,12 @@
 .main-header{
     color: white;
 }
+video{
+    border: #651e3e 2px solid;
+    width: 100%;
+}
+textarea{
+margin: 30px 0px 30px 0px;
+height: 50px;
+width: 100%;
+}

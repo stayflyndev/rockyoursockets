@@ -20,6 +20,10 @@ app.get('/', (req, res) => {
   res.sendFile(file);
 });
 
+app.get('/', (req, res)=>{
+  
+})
+
 //listens for client activity
 io.on('connection', (socket) =>{
     console.log("A user has connected")
