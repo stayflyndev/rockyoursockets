@@ -18,50 +18,43 @@ let initialize = async () => {
   document.getElementById("videoPlayer1").srcObject = localStream;
 };
 
-let createPeerConnection = async (sdpType) => {
-//create a peer connection instance and access to stun servers for Ice canidates
-console.log("test");
-peerConnection = new RTCPeerConnection(stun);
+let createPeerConnection = async () => {
 
-remoteStream = new MediaStream();
-
-
-document.getElementById("videoPlayer2").srcObject = remoteStream;
-
-//respond when a new track (video) connects to the peerconn
-localStream
-  .getTracks()
-  .forEach((track) => {
-    peerConnection.addTrack(track, localStream) 
-    console.log(track, localStream)});
-
-//add remote stream to the ontrack value in the peerconnection object
-peerConnection.ontrack = (event) => {
-  console.log("ontrack event:", event);
-  if (event.streams && event.streams.length > 0) {
-    var stream = event.streams[0];
-    console.log("Remote stream tracks:", stream.getTracks());
-    stream.getTracks().forEach((track) => {
-      remoteStream.addTrack(track);
-    });
-  
-  document.getElementById("videoPlayer2").srcObject = remoteStream;
-}
-};
-// add localstream data to stun servers for ice canidates
-peerConnection.onicecandidate = async (event) => {
-  if (event.candidate) {
-    document.getElementById(sdpType).value = JSON.stringify(
-      peerConnection.localDescription
-    );
-  }
-};
-
-console.log(peerConnection);
 }
 
 let createOffer = async () => {
-  createPeerConnection('offer-sdp')
+  //create a peer connection instance and access to stun servers for Ice canidates
+  console.log("test");
+  peerConnection = new RTCPeerConnection(stun);
+
+  document.getElementById("videoPlayer2").srcObject = remoteStream;
+
+  //respond when a new track (video) connects to the peerconn
+  localStream
+    .getTracks()
+    .forEach((track) => {
+      peerConnection.addTrack(track, localStream) 
+      console.log(track, localStream)});
+
+  //add remote stream to the ontrack value in the peerconnection object
+  peerConnection.ontrack = (event) => {
+    console.log("ontrack event:", event);
+    if (event.streams && event.streams.length > 0) {
+      var stream = event.streams[0];
+      console.log("Remote stream tracks:", stream.getTracks());
+    }
+    document.getElementById("videoPlayer2").srcObject = remoteStream;
+  };
+  // add localstream data to stun servers for ice canidates
+  peerConnection.onicecandidate = async (event) => {
+    if (event.candidate) {
+      document.getElementById("offer-sdp").value = JSON.stringify(
+        peerConnection.localDescription
+      );
+    }
+  };
+
+  console.log(peerConnection);
 
   //setup an display the peer offer
   let offer = await peerConnection.createOffer();
@@ -77,8 +70,35 @@ let createOffer = async () => {
 };
 
 let createAnswer = async () => {
-  createPeerConnection('answer-sdp')
+  peerConnection = new RTCPeerConnection(stun);
 
+  remoteStream = new MediaStream();
+  peerConnection.ontrack = (event) => {
+    console.log(event)
+    event.streams[0].getTracks().forEach((track) => {
+      remoteStream.addTrack(track);
+    });
+    document.getElementById("videoPlayer2").srcObject = remoteStream;
+    console.log(remoteStream)
+  };
+
+
+  localStream.getTracks().forEach((track) => {
+    peerConnection.addTrack(track, localStream);
+  });
+
+
+
+  peerConnection.onicecandidate = async (event) => {
+    if (event.candidate) {
+      document.getElementById("answer-sdp").value = JSON.stringify(
+        peerConnection.localDescription
+      );
+    }
+  };
+  peerConnection.oniceconnectionstatechange = () => {
+    console.log("ICE connection state:", peerConnection.iceConnectionState);
+  };
 
   let offer = document.getElementById("offer-sdp").value;
   if (!offer) return alert("Ask to connect with ID first...");
